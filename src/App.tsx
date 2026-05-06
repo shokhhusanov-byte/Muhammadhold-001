@@ -23,7 +23,7 @@ export default function App() {
   const [gameState, setGameState] = useState<'naming' | 'start' | 'playing' | 'gameover' | 'victory'>('naming');
   const [playerName, setPlayerName] = useState('');
   const [level, setLevel] = useState(1);
-  const [stats, setStats] = useState({ good: 9, enemies: 10 });
+  const [stats, setStats] = useState({ good: 10, enemies: 14 });
   const [score, setScore] = useState(0);
 
   // Game state refs to avoid re-renders during loop
@@ -70,7 +70,7 @@ export default function App() {
 
     // Good Tanks
     const goodTanks: Entity[] = [];
-    for (let i = 0; i < 8; i++) {
+    for (let i = 0; i < 9; i++) {
       goodTanks.push({
         id: `good-${i}`,
         x: 120 + i * 80,
@@ -86,12 +86,12 @@ export default function App() {
 
     // Enemies (Scaling health and numbers slightly)
     const enemies: Entity[] = [];
-    const enemyCount = 10;
+    const enemyCount = 14;
     for (let i = 0; i < enemyCount; i++) {
       enemies.push({
         id: `enemy-${i}`,
-        x: 100 + (i * 85),
-        y: 60,
+        x: 100 + (i % 10 * 85),
+        y: i < 10 ? 60 : 120, // Spread across two rows if they don't fit
         rotation: Math.PI / 2,
         targetRotation: Math.PI / 2,
         type: 'enemy',
@@ -102,7 +102,7 @@ export default function App() {
     enemiesRef.current = enemies;
     bulletsRef.current = [];
     
-    setStats({ good: 9, enemies: enemyCount });
+    setStats({ good: 10, enemies: enemyCount });
     if (targetLevel === 1) setScore(0);
     setGameState('playing');
   };
@@ -209,9 +209,10 @@ export default function App() {
 
         // AI Shooting
         const now = Date.now();
-        // Enemies now also shoot more aggressively
-        const shootChance = tank.type === 'good' ? 0.3 : 0.2;
-        const shootDelay = tank.type === 'good' ? FIRE_RATE * 1.0 : FIRE_RATE * 1.5;
+        // Allies and enemies adjusted for 0.1s FIRE_RATE
+        // Allies shoot more consistently, enemies have a lower chance but still fast
+        const shootChance = tank.type === 'good' ? 0.4 : 0.2;
+        const shootDelay = tank.type === 'good' ? FIRE_RATE : FIRE_RATE * 1.5;
 
         if (now - tank.lastShot > shootDelay && Math.random() < shootChance && Math.abs(diff) < 0.25) {
           bulletsRef.current.push({
@@ -250,11 +251,11 @@ export default function App() {
 
           const dist = Math.sqrt((bullet.x - tank.x)**2 + (bullet.y - tank.y)**2);
           if (dist < TANK_SIZE / 2) {
-            // Damage calculation: Allies deal 40, Enemies deal 35 (up from 25)
-            const damage = (bullet.ownerType === 'player' || bullet.ownerType === 'good') ? 40 : 35;
+            // Damage calculation: Reduced damage because fire rate is 10x faster
+            const damage = (bullet.ownerType === 'player' || bullet.ownerType === 'good') ? 8 : 6;
             tank.health -= damage;
             hit = true;
-            if (bullet.ownerType === 'player') setScore(s => s + 10);
+            if (bullet.ownerType === 'player') setScore(s => s + 5);
             break;
           }
         }
@@ -411,7 +412,7 @@ export default function App() {
             </div>
             <div>
               <p className="text-[10px] uppercase tracking-widest text-zinc-500 font-bold">Yaxshilar</p>
-              <p className="text-xl font-mono font-bold text-green-400">{stats.good} / 9</p>
+              <p className="text-xl font-mono font-bold text-green-400">{stats.good} / 10</p>
             </div>
           </div>
           <div className="flex items-center gap-3 bg-zinc-900/80 backdrop-blur border border-zinc-800 p-3 rounded-xl">
@@ -420,7 +421,7 @@ export default function App() {
             </div>
             <div>
               <p className="text-[10px] uppercase tracking-widest text-zinc-500 font-bold">Dushmanlar</p>
-              <p className="text-xl font-mono font-bold text-red-400">{stats.enemies} / 10</p>
+              <p className="text-xl font-mono font-bold text-red-400">{stats.enemies} / 14</p>
             </div>
           </div>
         </div>

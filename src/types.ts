@@ -40,4 +40,4 @@ export const GAME_HEIGHT = 800;
 export const TANK_SIZE = 40;
 export const TANK_SPEED = 2;
 export const BULLET_SPEED = 6;
-export const FIRE_RATE = 1000; // ms
+export const FIRE_RATE = 100; // ms (0.1s)
